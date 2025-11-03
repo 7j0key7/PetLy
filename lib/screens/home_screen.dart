@@ -1,5 +1,5 @@
   import 'package:flutter/material.dart';
-
+  import 'details_screen.dart';
   class HomeScreen extends StatefulWidget {
     const HomeScreen({super.key});
 
@@ -25,22 +25,44 @@
           centerTitle: true,
           title: const Text('PetLy'),
         ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(':'),
-              Text(
-                '$_counter',
-                style: Theme.of(context).textTheme.headlineMedium,
+body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Счётчик:'),
+            Text(
+              '$_counter',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+
+            const SizedBox(height: 30),
+
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DetailsScreen(),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 7, 175, 197),
+                foregroundColor: Color.fromARGB(255, 3, 65, 158),
+                side: const BorderSide(color: Color.fromARGB(96, 215, 247, 33), width: 2),
+                shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+  ),
               ),
-            ],
-          ),
+              child: const Text('Перейти на новый экран'),
+            ),
+          ],
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _incrementCounter,
-          child: const Icon(Icons.add),
-        ),
-      );
-    }
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _incrementCounter,
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
   }
