@@ -10,24 +10,42 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String name = '';
-  final controller = TextEditingController();
+  String name = '', weight = '';
+  final nameController = TextEditingController();
+  final weightController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    loadName();
+    SharedPreferences.getInstance().then((prefs) {
+      setState(() {
+        name = prefs.getString('name') ?? '';
+        weight = prefs.getString('weight') ?? '';
+      });
+    });
   }
 
-  Future<void> loadName() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() => name = prefs.getString('name') ?? '');
+  @override
+  void dispose() {
+    nameController.dispose();
+    weightController.dispose();
+    super.dispose();
   }
 
-  Future<void> saveName() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('name', controller.text);
-    setState(() => name = controller.text);
+  void saveData() async {
+    if (_formKey.currentState!.validate()) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('name', nameController.text);
+      await prefs.setString('weight', weightController.text);
+      setState(() {
+        name = nameController.text;
+        weight = weightController.text;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Данные сохранены: $name, $weight кг')),
+      );
+    }
   }
 
   @override
@@ -39,34 +57,55 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: true,
         title: const Text('PetLy'),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text('Имя питомца: ${name.isEmpty ? "—" : name}'),
+              Text('Вес питомца: ${weight.isEmpty ? "—" : "$weight кг"}'),
               const SizedBox(height: 20),
-              TextField(
-                controller: controller,
+
+              TextFormField(
+                controller: nameController,
                 decoration: const InputDecoration(
-                  hintText: 'Введите имя питомца',
+                  labelText: 'Имя питомца',
                   border: OutlineInputBorder(),
                 ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Введите имя';
+                  if (v.trim().length > 30) return 'Имя не должно быть длиннее 30';
+                  return null;
+                },
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: saveName,
-                child: const Text('Сохранить'),
+
+              // Вес питомца
+              TextFormField(
+                controller: weightController,
+                decoration: const InputDecoration(
+                  labelText: 'Вес питомца (кг)',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Введите вес';
+                  if (double.tryParse(v) == null) return 'Только цифры';
+                  if (double.parse(v) <= 0) return 'Вес должен быть >0';
+                  return null;
+                },
               ),
+              const SizedBox(height: 20),
+
+              ElevatedButton(onPressed: saveData, child: const Text('Сохранить')),
               const SizedBox(height: 30),
               ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const DetailsScreen()),
-                  );
-                },
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DetailsScreen()),
+                ),
                 child: const Text('Перейти на новый экран'),
               ),
             ],
